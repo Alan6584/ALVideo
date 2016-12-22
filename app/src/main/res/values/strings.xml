@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">ALVideo</string>
+
+    <string name="recording_status">Recording...</string>
+    <string name="recording_saved">Recording has saved in ：</string>
+    <string name="record_start">Start</string>
+    <string name="record_stop">Stop</string>
+
+    <string-array name="cameraFilterNames">
+        <item>Filter：OFF</item>
+        <item>Filter：GRAYSCALE</item>
+        <item>Filter：STARMAKER</item>
+        <item>Filter：SEPIA</item>
+    </string-array>
+</resources>
