@@ -1,12 +1,11 @@
 package com.alan.alvideo.camera;
 
-import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.opengl.EGL14;
 import android.opengl.GLSurfaceView;
-import android.opengl.Matrix;
 
 import com.alan.alvideo.filter.FilterManager;
+import com.alan.alvideo.filter.FilterManager.FilterType;
 import com.alan.alvideo.gles.FullFrameRect;
 import com.alan.alvideo.gles.GlUtil;
 import com.alan.alvideo.video.EncoderConfig;
@@ -15,7 +14,6 @@ import com.alan.alvideo.view.CameraSurfaceView;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
-import com.alan.alvideo.filter.FilterManager.FilterType;
 
 public class CameraRecordRenderer implements GLSurfaceView.Renderer {
 
@@ -23,8 +21,6 @@ public class CameraRecordRenderer implements GLSurfaceView.Renderer {
     private static final int RECORDING_ON = 1;
     private static final int RECORDING_RESUMED = 2;
 
-    private final Context mApplicationContext;
-    private final CameraSurfaceView.CameraHandler mCameraHandler;
     private int mTextureId = GlUtil.NO_TEXTURE;
     private FullFrameRect mFullScreen;
     private SurfaceTexture mSurfaceTexture;
@@ -32,44 +28,59 @@ public class CameraRecordRenderer implements GLSurfaceView.Renderer {
 
     private FilterType mCurrentFilterType;
     private FilterType mNewFilterType;
+    private EncoderConfig mEncoderConfig;
     private TextureMovieEncoder mVideoEncoder;
+    private final CameraSurfaceView.CameraHandler mCameraHandler;
 
     private boolean mRecordingEnabled;
     private int mRecordingStatus;
-    private EncoderConfig mEncoderConfig;
 
-    private float mMvpScaleX = 1f, mMvpScaleY = 1f;
-    private int mSurfaceWidth, mSurfaceHeight;
-
-    public CameraRecordRenderer(Context applicationContext,
-            CameraSurfaceView.CameraHandler cameraHandler) {
-        mApplicationContext = applicationContext;
+    public CameraRecordRenderer(CameraSurfaceView.CameraHandler cameraHandler) {
         mCameraHandler = cameraHandler;
-        mCurrentFilterType = mNewFilterType = FilterType.Normal;
+        mCurrentFilterType = mNewFilterType = FilterType.NORMAL;
         mVideoEncoder = TextureMovieEncoder.getInstance();
     }
 
+    /**
+     * 设置编码器配置，携带录制文件的宽高、输出文件等信息
+     * @param encoderConfig
+     */
     public void setEncoderConfig(EncoderConfig encoderConfig) {
         mEncoderConfig = encoderConfig;
     }
 
+    /**
+     * 设置录制状态，开始录制、停止录制
+     * @param recordingEnabled
+     */
     public void setRecordingEnabled(boolean recordingEnabled) {
         mRecordingEnabled = recordingEnabled;
     }
 
-    public void setCameraPreviewSize(int width, int height) {
-        float scaleHeight = mSurfaceWidth / (width * 1f / height * 1f);
-        float surfaceHeight = mSurfaceHeight;
-
+    /**
+     * 停止渲染
+     */
+    public void stopRender() {
+        if (mSurfaceTexture != null) {
+            mSurfaceTexture.release();
+            mSurfaceTexture = null;
+        }
         if (mFullScreen != null) {
-            mMvpScaleX = 1f;
-            mMvpScaleY = scaleHeight / surfaceHeight;
-            mFullScreen.scaleMVPMatrix(mMvpScaleX, mMvpScaleY);
+            mFullScreen.release(false);
+            mFullScreen = null;
         }
     }
 
-    @Override public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        Matrix.setIdentityM(mSTMatrix, 0);
+    /**
+     * 更换滤镜
+     * @param filterType
+     */
+    public void changeFilter(FilterType filterType) {
+        mNewFilterType = filterType;
+    }
+
+    @Override
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         mRecordingEnabled = mVideoEncoder.isRecording();
         if (mRecordingEnabled) {
             mRecordingStatus = RECORDING_RESUMED;
@@ -77,52 +88,53 @@ public class CameraRecordRenderer implements GLSurfaceView.Renderer {
             mRecordingStatus = RECORDING_OFF;
             mVideoEncoder.initFilter(mCurrentFilterType);
         }
+        //初始化渲染器，并获取TextureId创建SurfaceTexture，后面会将该SurfaceTexture与camera绑定
         mFullScreen = new FullFrameRect(FilterManager.getCameraFilter(mCurrentFilterType));
         mTextureId = mFullScreen.createTextureObject();
         mSurfaceTexture = new SurfaceTexture(mTextureId);
     }
 
-    @Override public void onSurfaceChanged(GL10 gl, int width, int height) {
-        mSurfaceWidth = width;
-        mSurfaceHeight = height;
-
+    @Override
+    public void onSurfaceChanged(GL10 gl, int width, int height) {
         if (gl != null) {
             gl.glViewport(0, 0, width, height);
         }
-
-        mCameraHandler.sendMessage(
-                mCameraHandler.obtainMessage(CameraSurfaceView.CameraHandler.SETUP_CAMERA, width,
-                        height, mSurfaceTexture));
+        mCameraHandler.sendMessage(mCameraHandler.obtainMessage(
+                CameraSurfaceView.CameraHandler.SETUP_CAMERA, width, height, mSurfaceTexture));
     }
 
-    @Override public void onDrawFrame(GL10 gl) {
+    @Override
+    public void onDrawFrame(GL10 gl) {
         mSurfaceTexture.updateTexImage();
-        if (mNewFilterType != mCurrentFilterType) {
+        if (mNewFilterType != mCurrentFilterType) {//如果滤镜改变，则更新滤镜
             mFullScreen.changeProgram(FilterManager.getCameraFilter(mNewFilterType));
             mCurrentFilterType = mNewFilterType;
         }
-//        mFullScreen.getFilter().setTextureSize(mIncomingWidth, mIncomingHeight);
         mSurfaceTexture.getTransformMatrix(mSTMatrix);
         mFullScreen.drawFrame(mTextureId, mSTMatrix);
 
-        videoOnDrawFrame(mTextureId, mSTMatrix, mSurfaceTexture.getTimestamp());
+        encoderDrawFrame(mTextureId, mSTMatrix, mSurfaceTexture.getTimestamp());
     }
 
-    private void videoOnDrawFrame(int textureId, float[] texMatrix, long timestamp) {
+    /**
+     * 通知编码器绘制video frame
+     * @param textureId 纹理ID，与相机预览的纹理绑定，获取纹理数据
+     * @param texMatrix 纹理矩阵
+     * @param timestamp 时间戳
+     */
+    private void encoderDrawFrame(int textureId, float[] texMatrix, long timestamp) {
         if (mRecordingEnabled && mEncoderConfig != null) {
             switch (mRecordingStatus) {
                 case RECORDING_OFF:
                     mEncoderConfig.updateEglContext(EGL14.eglGetCurrentContext());
                     mVideoEncoder.startRecording(mEncoderConfig);
                     mVideoEncoder.setTextureId(textureId);
-                    mVideoEncoder.scaleMVPMatrix(mMvpScaleX, mMvpScaleY);
                     mRecordingStatus = RECORDING_ON;
 
                     break;
                 case RECORDING_RESUMED:
                     mVideoEncoder.updateSharedContext(EGL14.eglGetCurrentContext());
                     mVideoEncoder.setTextureId(textureId);
-                    mVideoEncoder.scaleMVPMatrix(mMvpScaleX, mMvpScaleY);
                     mRecordingStatus = RECORDING_ON;
                     break;
                 case RECORDING_ON:
@@ -148,22 +160,5 @@ public class CameraRecordRenderer implements GLSurfaceView.Renderer {
 
         mVideoEncoder.updateFilter(mCurrentFilterType);
         mVideoEncoder.frameAvailable(texMatrix, timestamp);
-    }
-
-    public void notifyPausing() {
-
-        if (mSurfaceTexture != null) {
-            mSurfaceTexture.release();
-            mSurfaceTexture = null;
-        }
-
-        if (mFullScreen != null) {
-            mFullScreen.release(false);     // assume the GLSurfaceView EGL context is about
-            mFullScreen = null;             // to be destroyed
-        }
-    }
-
-    public void changeFilter(FilterType filterType) {
-        mNewFilterType = filterType;
     }
 }

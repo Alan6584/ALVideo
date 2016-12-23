@@ -11,7 +11,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.alan.alvideo.R;
-import com.alan.alvideo.camera.CameraRecordRenderer;
 import com.alan.alvideo.filter.FilterManager.FilterType;
 import com.alan.alvideo.util.FileUtil;
 import com.alan.alvideo.video.EncoderConfig;
@@ -22,84 +21,90 @@ import java.io.File;
 
 public class VideoActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
-    private CameraSurfaceView mCameraSurfaceView;
+    private CameraSurfaceView cameraSurfaceView;
     private TextView curStatusTV;
-    private Button mRecordButton;
-    private boolean mIsRecordEnabled;
-    private String curFileName;
+    private Button recordBtn;
+    private boolean isRecordEnabled;
+    private File curRecordFile;
 
-    @Override protected void onCreate(Bundle savedInstanceState) {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video);
-        mCameraSurfaceView = (CameraSurfaceView) findViewById(R.id.camera);
+
+        initView();
+        isRecordEnabled = TextureMovieEncoder.getInstance().isRecording();
+    }
+
+    //初始化界面
+    private void initView() {
+        cameraSurfaceView = (CameraSurfaceView) findViewById(R.id.camera);
         curStatusTV = (TextView) findViewById(R.id.current_status);
 
+        //初始化滤镜选择器
         Spinner spinner = (Spinner) findViewById(R.id.camera_filter_spinner);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.cameraFilterNames, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // Apply the adapter to the spinner.
         spinner.setAdapter(adapter);
         spinner.setOnItemSelectedListener(this);
 
-        mRecordButton = (Button) findViewById(R.id.record);
-        mRecordButton.setOnClickListener(this);
-
-        mIsRecordEnabled = TextureMovieEncoder.getInstance().isRecording();
-        updateRecordButton();
+        recordBtn = (Button) findViewById(R.id.record);
+        recordBtn.setOnClickListener(this);
     }
 
-    @Override protected void onResume() {
+    @Override
+    protected void onResume() {
         super.onResume();
-        mCameraSurfaceView.onResume();
-        updateRecordButton();
+        cameraSurfaceView.onResume();//与Activity的生命周期保持一致
     }
 
-    @Override protected void onPause() {
-        mCameraSurfaceView.onPause();
+    @Override
+    protected void onPause() {
+        cameraSurfaceView.onPause();//与Activity的生命周期保持一致
         super.onPause();
     }
 
-    @Override protected void onDestroy() {
-        mCameraSurfaceView.onDestroy();
+    @Override
+    protected void onDestroy() {
+        cameraSurfaceView.onDestroy();//与Activity的生命周期保持一致
         super.onDestroy();
     }
 
-    @Override public void onClick(View v) {
+    @Override
+    public void onClick(View v) {
         switch (v.getId()) {
             case R.id.record:
-                if (!mIsRecordEnabled) {
-                    curFileName = "video-" + System.currentTimeMillis() + ".mp4";
-                    mCameraSurfaceView.queueEvent(new Runnable() {
-                        @Override public void run() {
-                            CameraRecordRenderer renderer = mCameraSurfaceView.getRenderer();
-                            renderer.setEncoderConfig(new EncoderConfig(new File(
-                                    FileUtil.getCacheDirectory(VideoActivity.this, true),
-                                    curFileName), 480, 640,
+                if (!isRecordEnabled) {
+                    //开启录制流程
+                    String curFileName = "video-" + System.currentTimeMillis() + ".mp4";
+                    curRecordFile = new File(FileUtil.getCacheDirectory(VideoActivity.this, true), curFileName);
+                    cameraSurfaceView.queueEvent(new Runnable() {
+                        @Override
+                        public void run() {
+                            cameraSurfaceView.setEncoderConfig(new EncoderConfig(curRecordFile, 480, 640,
                                     1024 * 1024 /* 1 Mb/s */));
                         }
                     });
                 }
-                mIsRecordEnabled = !mIsRecordEnabled;
-                if (mIsRecordEnabled){
-                    curStatusTV.setText(getString(R.string.recording_status));
-                }else {
-                    curStatusTV.setText(getString(R.string.recording_saved)
-                            + new File(FileUtil.getCacheDirectory(VideoActivity.this, true), curFileName).getAbsolutePath());
-                }
-                mCameraSurfaceView.queueEvent(new Runnable() {
-                    @Override public void run() {
-                        mCameraSurfaceView.getRenderer().setRecordingEnabled(mIsRecordEnabled);
+                isRecordEnabled = !isRecordEnabled;
+                cameraSurfaceView.queueEvent(new Runnable() {
+                    @Override
+                    public void run() {
+                        cameraSurfaceView.setRecordingEnabled(isRecordEnabled);
                     }
                 });
-                updateRecordButton();
+                updateUIRecordStatus();
                 break;
         }
     }
 
-    public void updateRecordButton() {
-        mRecordButton.setText(
-                getString(mIsRecordEnabled ? R.string.record_stop : R.string.record_start));
+    /**
+     * 根据当前录制状态更新界面状态
+     */
+    public void updateUIRecordStatus() {
+        curStatusTV.setText(isRecordEnabled ? getString(R.string.recording_status) : getString(R.string.recording_saved) + curRecordFile.getAbsolutePath());
+        recordBtn.setText(getString(isRecordEnabled ? R.string.record_stop : R.string.record_start));
     }
 
     @Override
@@ -108,18 +113,19 @@ public class VideoActivity extends AppCompatActivity implements View.OnClickList
         final int filterNum = spinner.getSelectedItemPosition();
         Log.d("Alan", "onItemSelected: " + filterNum);
 
+        //根据选择的滤镜实时更新滤镜效果
         switch (filterNum) {
             case 0:
-                mCameraSurfaceView.changeFilter(FilterType.Normal);
+                cameraSurfaceView.changeFilter(FilterType.NORMAL);
                 break;
             case 1:
-                mCameraSurfaceView.changeFilter(FilterType.GRAYSCALE);
+                cameraSurfaceView.changeFilter(FilterType.GRAYSCALE);
                 break;
             case 2:
-                mCameraSurfaceView.changeFilter(FilterType.STARMAKER);
+                cameraSurfaceView.changeFilter(FilterType.STARMAKER);
                 break;
             case 3:
-                mCameraSurfaceView.changeFilter(FilterType.SEPIA);
+                cameraSurfaceView.changeFilter(FilterType.SEPIA);
                 break;
         }
     }

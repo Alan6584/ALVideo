@@ -3,101 +3,110 @@ package com.alan.alvideo.camera;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 
+/**
+ * Created by wangjianjun on 16/12/22.
+ * alanwang6584@gmail.com
+ */
 public class CameraController {
 
-    private static volatile CameraController sInstance;
-
+    private static volatile CameraController _instance;
     private Camera mCamera = null;
-    public int mCameraIndex = Camera.CameraInfo.CAMERA_FACING_FRONT;
-    public boolean mCameraMirrored = false;
-
+    private boolean isFrontCamera = true;
     private final Object mLock = new Object();
 
+    /**
+     * 获取相机控制器的单例，由该类统一控制管理Camera
+     * @return
+     */
     public static CameraController getInstance() {
-        if (sInstance == null) {
+        if (_instance == null) {
             synchronized (CameraController.class) {
-                if (sInstance == null) {
-                    sInstance = new CameraController();
+                if (_instance == null) {
+                    _instance = new CameraController();
                 }
             }
         }
-        return sInstance;
+        return _instance;
     }
 
-    private CameraController() {
-    }
+    /**
+     * 禁止外部直接初始化
+     */
+    private CameraController() {}
 
     public void setupCamera(SurfaceTexture surfaceTexture) {
         if (mCamera != null) {
             release();
         }
-
         synchronized (mLock) {
             try {
-                if (Camera.getNumberOfCameras() > 0) {
-                    mCamera = Camera.open(mCameraIndex);
-                } else {
-                    mCamera = Camera.open();
-                }
+                //获取前置摄像头的cameraId,并打开相机
+                int cameraId = CameraUtils.getTheCameraId(isFrontCamera);
+                mCamera = Camera.open(cameraId);
 
-                Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
-                Camera.getCameraInfo(mCameraIndex, cameraInfo);
-
-                mCameraMirrored = (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT);
-                mCamera.setDisplayOrientation(90);
-                mCamera.setPreviewTexture(surfaceTexture);
+                //TODO 此处需要做适配，某些机型需要旋转270，而且横屏和竖屏旋转角度也不一样
+                mCamera.setDisplayOrientation(90);//设置相机预览方向
+                mCamera.setPreviewTexture(surfaceTexture);//绑定预览纹理
             } catch (Exception e) {
                 e.printStackTrace();
                 mCamera = null;
                 e.printStackTrace();
             }
 
+            //TODO 相机打开失败需要做个回调
             if (mCamera == null) {
-                //Toast.makeText(mContext, "Unable to start camera", Toast.LENGTH_SHORT).showFromSession();
                 return;
             }
 
         }
     }
 
+    /**
+     * 设置相机参数
+     * @param previewSize
+     */
     public void configureCameraParameters(Camera.Size previewSize) {
-
         try {
-            Camera.Parameters cp = getCameraParameters();
-            if (cp == null || mCamera == null) {
+            Camera.Parameters parameters = getCameraParameters();
+            if (parameters == null || mCamera == null) {
                 return;
             }
-            // 对焦模式
             synchronized (mLock) {
-                // 预览尺寸
+                // 设置预览尺寸
                 if (previewSize != null) {
-                    cp.setPreviewSize(previewSize.width, previewSize.height);
+                    parameters.setPreviewSize(previewSize.width, previewSize.height);
                 }
-                mCamera.setParameters(cp);
+                mCamera.setParameters(parameters);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * 开始预览
+     * @return
+     */
     public boolean startCameraPreview() {
         if (mCamera != null) {
             synchronized (mLock) {
                 try {
                     mCamera.startPreview();
-                    mCamera.autoFocus(null);
+                    mCamera.autoFocus(null);//设置自动对焦
                     return true;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
-
         return false;
     }
 
+    /**
+     * 停止预览
+     * @return
+     */
     public boolean stopCameraPreview() {
-
         if (mCamera != null) {
             synchronized (mLock) {
                 try {
@@ -108,10 +117,12 @@ public class CameraController {
                 }
             }
         }
-
         return false;
     }
 
+    /**
+     * 释放相机资源
+     */
     public void release() {
         if (mCamera != null) {
             synchronized (mLock) {
@@ -129,6 +140,10 @@ public class CameraController {
     }
 
 
+    /**
+     * 获取相机参数信息
+     * @return
+     */
     public Camera.Parameters getCameraParameters() {
         if (mCamera != null) {
             synchronized (mLock) {
@@ -139,7 +154,6 @@ public class CameraController {
                 }
             }
         }
-
         return null;
     }
 

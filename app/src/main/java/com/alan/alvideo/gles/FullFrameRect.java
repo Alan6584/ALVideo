@@ -32,16 +32,12 @@ package com.alan.alvideo.gles;
  * limitations under the License.
  */
 
-import android.opengl.Matrix;
-
-
 /**
  * This class essentially represents a viewport-sized sprite that will be rendered with
  * a texture, usually from an external source like the camera or video decoder.
  */
 public class FullFrameRect {
     private final Drawable2d mRectDrawable = new Drawable2d();
-    public final float[] IDENTITY_MATRIX = new float[16];
 
     private Texture2dProgram mProgram;
 
@@ -49,14 +45,11 @@ public class FullFrameRect {
      * Prepares the object.
      *
      * @param program The program to use.  FullFrameRect takes ownership, and will release
-     *     the program when no longer needed.
+     *                the program when no longer needed.
      */
     public FullFrameRect(Texture2dProgram program) {
         mProgram = program;
-        Matrix.setIdentityM(IDENTITY_MATRIX, 0);
     }
-
-
 
 
     /**
@@ -100,12 +93,6 @@ public class FullFrameRect {
         return mProgram.createTextureObject();
     }
 
-
-    public void scaleMVPMatrix(float x, float y) {
-        Matrix.setIdentityM(IDENTITY_MATRIX, 0);
-        Matrix.scaleM(IDENTITY_MATRIX, 0, x, y, 1f);
-    }
-
     /**
      * Draws a viewport-filling rect, texturing it with the specified texture object.
      */
@@ -113,7 +100,7 @@ public class FullFrameRect {
     public void drawFrame(int textureId, float[] texMatrix) {
 
         // Use the identity matrix for MVP so our 2x2 FULL_RECTANGLE covers the viewport.
-        mProgram.draw(IDENTITY_MATRIX, mRectDrawable.getVertexArray(), 0,
+        mProgram.draw(GlUtil.IDENTITY_MATRIX, mRectDrawable.getVertexArray(), 0,
                 mRectDrawable.getVertexCount(), mRectDrawable.getCoordsPerVertex(),
                 mRectDrawable.getVertexStride(), texMatrix, mRectDrawable.getTexCoordArray(),
                 textureId, mRectDrawable.getTexCoordStride());

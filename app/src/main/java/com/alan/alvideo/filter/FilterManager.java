@@ -2,16 +2,32 @@ package com.alan.alvideo.filter;
 
 import com.alan.alvideo.gles.Texture2dProgram;
 
-
+/**
+ * Created by wangjianjun on 16/12/22.
+ * alanwang6584@gmail.com
+ */
 public class FilterManager {
+
+    /**
+     * 滤镜类型
+     */
+    public enum FilterType {
+        NORMAL, GRAYSCALE, STARMAKER, SEPIA
+    }
 
     private FilterManager() {
     }
 
+    /**
+     * 根据滤镜类型返回纹理渲染器
+     *
+     * @param filterType
+     * @return
+     */
     public static Texture2dProgram getCameraFilter(FilterType filterType) {
         Texture2dProgram.ProgramType programType;
         switch (filterType) {
-            case Normal:
+            case NORMAL:
             default:
                 programType = Texture2dProgram.ProgramType.TEXTURE_EXT;
                 break;
@@ -27,9 +43,5 @@ public class FilterManager {
         }
         Texture2dProgram program = new Texture2dProgram(programType);
         return program;
-    }
-
-    public enum FilterType {
-        Normal, GRAYSCALE, STARMAKER, SEPIA
     }
 }

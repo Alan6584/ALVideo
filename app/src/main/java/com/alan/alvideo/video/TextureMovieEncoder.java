@@ -55,7 +55,7 @@ import java.lang.ref.WeakReference;
  * <li>for each frame, after latching it with SurfaceTexture#updateTexImage(),
  * call TextureMovieEncoder#frameAvailable().
  * </ul>
- *
+ * <p>
  * TODO: tweak the API (esp. textureId) so it's less awkward for simple use cases.
  */
 public class TextureMovieEncoder implements Runnable {
@@ -129,11 +129,6 @@ public class TextureMovieEncoder implements Runnable {
         }
 
         mHandler.sendMessage(mHandler.obtainMessage(MSG_START_RECORDING, config));
-    }
-
-    public void scaleMVPMatrix(float x, float y) {
-        PointF pointF = new PointF(x, y);
-        mHandler.sendMessage(mHandler.obtainMessage(MSG_SCALE_MVP_MATRIX, pointF));
     }
 
     /**
@@ -233,7 +228,8 @@ public class TextureMovieEncoder implements Runnable {
      *
      * @see Thread#run()
      */
-    @Override public void run() {
+    @Override
+    public void run() {
         // Establish a Looper for this thread, and define a Handler for it.
         Looper.prepare();
         synchronized (mReadyFence) {
@@ -277,10 +273,6 @@ public class TextureMovieEncoder implements Runnable {
                     break;
                 case MSG_STOP_RECORDING:
                     encoder.handleStopRecording();
-                    break;
-
-                case MSG_SCALE_MVP_MATRIX:
-                    encoder.handleSaleMVPMatrix((PointF) obj);
                     break;
 
                 case MSG_FRAME_AVAILABLE:
@@ -328,7 +320,7 @@ public class TextureMovieEncoder implements Runnable {
      * box (just because we can).
      * <p>
      *
-     * @param transform The texture transform, from SurfaceTexture.
+     * @param transform      The texture transform, from SurfaceTexture.
      * @param timestampNanos The frame's timestamp, from SurfaceTexture.
      */
     private void handleFrameAvailable(float[] transform, long timestampNanos) {
@@ -346,10 +338,6 @@ public class TextureMovieEncoder implements Runnable {
         Log.d(TAG, "handleStopRecording");
         mVideoEncoder.drainEncoder(true);
         releaseEncoder();
-    }
-
-    private void handleSaleMVPMatrix(PointF pointF) {
-        mFullScreen.scaleMVPMatrix(pointF.x, pointF.y);
     }
 
     /**
@@ -385,7 +373,7 @@ public class TextureMovieEncoder implements Runnable {
     }
 
     private void prepareEncoder(EGLContext sharedContext, int width, int height, int bitRate,
-            File outputFile) {
+                                File outputFile) {
         try {
             mVideoEncoder = new VideoEncoderCore(width, height, bitRate, outputFile);
         } catch (IOException ioe) {
