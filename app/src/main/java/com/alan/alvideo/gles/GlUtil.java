@@ -33,9 +33,10 @@ import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 
-public class GlUtil {
-    private static final String TAG = "GlUtil";
+public class GLUtil {
+    private static final String TAG = "GLUtil";
     /** Identity matrix for general use.  Don't modify or life will get weird. */
     public static final float[] IDENTITY_MATRIX;
     static {
@@ -46,8 +47,9 @@ public class GlUtil {
     public static final int NO_TEXTURE = -1;
 
     private static final int SIZEOF_FLOAT = 4;
+    private static final int SIZEOF_BUFFER = 2;
 
-    private GlUtil() { // do not instantiate
+    private GLUtil() { // do not instantiate
     }
 
     public static int createProgram(Context applicationContext, @RawRes int vertexSourceRawId,
@@ -141,6 +143,19 @@ public class GlUtil {
         fb.put(coords);
         fb.position(0);
         return fb;
+    }
+
+    /**
+     * Allocates a direct short buffer, and populates it with the short array data.
+     */
+    public static ShortBuffer creatShortBuffer(short shortArray[]){
+        ShortBuffer shortBuffer;
+        ByteBuffer bb = ByteBuffer.allocateDirect(shortArray.length * SIZEOF_BUFFER);
+        bb.order(ByteOrder.nativeOrder());
+        shortBuffer = bb.asShortBuffer();
+        shortBuffer.put(shortArray);
+        shortBuffer.position(0);
+        return shortBuffer;
     }
 
     public static String readTextFromRawResource(final Context applicationContext,

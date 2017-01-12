@@ -19,6 +19,10 @@ import com.alan.alvideo.view.CameraSurfaceView;
 
 import java.io.File;
 
+/**
+ * Created by wangjianjun on 17/01/09.
+ * alanwang6584@gmail.com
+ */
 public class VideoActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
     private CameraSurfaceView cameraSurfaceView;

@@ -3,6 +3,8 @@
     package="com.alan.alvideo">
 
     <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -26,7 +28,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.alan.alvideo.activity.VideoActivity"
+        <activity android:name="com.alan.alvideo.activity.MainActivity"
             android:screenOrientation="portrait"
             >
             <intent-filter>
@@ -35,6 +37,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name="com.alan.alvideo.activity.VideoActivity"
+            android:screenOrientation="portrait">
+        </activity>
+
+        <activity
+            android:name="com.alan.alvideo.activity.GLVideoPlayActivity"
+            android:screenOrientation="portrait">
+        </activity>
+
     </application>
 
 </manifest>

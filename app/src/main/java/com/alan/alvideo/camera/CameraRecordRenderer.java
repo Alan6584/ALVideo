@@ -7,7 +7,7 @@ import android.opengl.GLSurfaceView;
 import com.alan.alvideo.filter.FilterManager;
 import com.alan.alvideo.filter.FilterManager.FilterType;
 import com.alan.alvideo.gles.FullFrameRect;
-import com.alan.alvideo.gles.GlUtil;
+import com.alan.alvideo.gles.GLUtil;
 import com.alan.alvideo.video.EncoderConfig;
 import com.alan.alvideo.video.TextureMovieEncoder;
 import com.alan.alvideo.view.CameraSurfaceView;
@@ -21,7 +21,7 @@ public class CameraRecordRenderer implements GLSurfaceView.Renderer {
     private static final int RECORDING_ON = 1;
     private static final int RECORDING_RESUMED = 2;
 
-    private int mTextureId = GlUtil.NO_TEXTURE;
+    private int mTextureId = GLUtil.NO_TEXTURE;
     private FullFrameRect mFullScreen;
     private SurfaceTexture mSurfaceTexture;
     private final float[] mSTMatrix = new float[16];
