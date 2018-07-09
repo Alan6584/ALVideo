@@ -99,4 +99,30 @@ public class CameraUtils {
         return optimalSize;
     }
 
+    /**
+     * 获取合适的帧率
+     * @param expectedFps 期望的帧率
+     * @param fpsRanges
+     * @return
+     */
+    public static int[] getSuitablePreviewFps(int expectedFps, List<int[]> fpsRanges) {
+        expectedFps *= 1000;
+        int[] retRange;
+        if (fpsRanges != null && fpsRanges.size() > 0) {
+            retRange = fpsRanges.get(0);
+            int minDiff = Integer.MAX_VALUE;
+            for (int[] range : fpsRanges) {
+                if (range[0] <= expectedFps && range[1] >= expectedFps) {
+                    int curDiff = Math.abs(range[0] - expectedFps) + Math.abs(range[1] - expectedFps);
+                    if (curDiff < minDiff) {
+                        minDiff = curDiff;
+                        retRange = range;
+                    }
+                }
+            }
+        } else {
+            retRange = new int[]{expectedFps, expectedFps};
+        }
+        return retRange;
+    }
 }

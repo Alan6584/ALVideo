@@ -29,7 +29,7 @@ public class Texture2dProgram {
     private static final String TAG = Texture2dProgram.class.getSimpleName();
 
     public enum ProgramType {
-        TEXTURE_2D, TEXTURE_EXT, TEXTURE_EXT_BW, TEXTURE_EXT_FILT, TEXTURE_EXT_STARMAKER, TEXTURE_EXT_SEPIA
+        TEXTURE_2D, TEXTURE_EXT, TEXTURE_EXT_BW, TEXTURE_EXT_FILT, TEXTURE_EXT_STARMAKER, TEXTURE_EXT_SEPIA, TEXTURE_EXT_BEAUTY
     }
 
     // Simple vertex shader, used for all programs.
@@ -132,6 +132,125 @@ public class Texture2dProgram {
                     "    gl_FragColor = sum;\n" +
                     "}\n";
 
+    private static final String FRAGMENT_SHADER_EXT_BEAUTY =
+            "#extension GL_OES_EGL_image_external : require\n" +
+                    "precision mediump float;\n" +
+
+                    "uniform samplerExternalOES sTexture;\n" +
+                    "uniform vec4 levelParam;\n" +
+                    "varying mediump vec2 vTextureCoord;\n" +
+
+                    "void main() {\n" +
+                    "vec3 centralColor;\n" +
+                    "float sampleColor;\n" +
+                    "vec2 blurCoordinates[20];\n" +
+                    "float mul = 2.0;\n" +
+                    "float mul_x = mul / 480.0;\n" +
+                    "float mul_y = mul / 640.0;\n" +
+
+                    "blurCoordinates[0] = vTextureCoord + vec2(0.0 * mul_x,-10.0 * mul_y);\n" +
+                    "blurCoordinates[1] = vTextureCoord + vec2(5.0 * mul_x,-8.0 * mul_y);\n" +
+                    "blurCoordinates[2] = vTextureCoord + vec2(8.0 * mul_x,-5.0 * mul_y);\n" +
+                    "blurCoordinates[3] = vTextureCoord + vec2(10.0 * mul_x,0.0 * mul_y);\n" +
+                    "blurCoordinates[4] = vTextureCoord + vec2(8.0 * mul_x,5.0 * mul_y);\n" +
+                    "blurCoordinates[5] = vTextureCoord + vec2(5.0 * mul_x,8.0 * mul_y);\n" +
+                    "blurCoordinates[6] = vTextureCoord + vec2(0.0 * mul_x,10.0 * mul_y);\n" +
+                    "blurCoordinates[7] = vTextureCoord + vec2(-5.0 * mul_x,8.0 * mul_y);\n" +
+                    "blurCoordinates[8] = vTextureCoord + vec2(-8.0 * mul_x,5.0 * mul_y);\n" +
+                    "blurCoordinates[9] = vTextureCoord + vec2(-10.0 * mul_x,0.0 * mul_y);\n" +
+                    "blurCoordinates[10] = vTextureCoord + vec2(-8.0 * mul_x,-5.0 * mul_y);\n" +
+                    "blurCoordinates[11] = vTextureCoord + vec2(-5.0 * mul_x,-8.0 * mul_y);\n" +
+                    "blurCoordinates[12] = vTextureCoord + vec2(0.0 * mul_x,-6.0 * mul_y);\n" +
+                    "blurCoordinates[13] = vTextureCoord + vec2(-4.0 * mul_x,-4.0 * mul_y);\n" +
+                    "blurCoordinates[14] = vTextureCoord + vec2(-6.0 * mul_x,0.0 * mul_y);\n" +
+                    "blurCoordinates[15] = vTextureCoord + vec2(-4.0 * mul_x,4.0 * mul_y);\n" +
+                    "blurCoordinates[16] = vTextureCoord + vec2(0.0 * mul_x,6.0 * mul_y);\n" +
+                    "blurCoordinates[17] = vTextureCoord + vec2(4.0 * mul_x,4.0 * mul_y);\n" +
+                    "blurCoordinates[18] = vTextureCoord + vec2(6.0 * mul_x,0.0 * mul_y);\n" +
+                    "blurCoordinates[19] = vTextureCoord + vec2(4.0 * mul_x,-4.0 * mul_y);\n" +
+
+                    "centralColor = texture2D(sTexture, vTextureCoord).rgb;\n" +
+                    "sampleColor = centralColor.g * 22.0;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[0]).g;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[1]).g;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[2]).g;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[3]).g;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[4]).g;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[5]).g;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[6]).g;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[7]).g;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[8]).g;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[9]).g;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[10]).g;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[11]).g;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[12]).g * 2.0;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[13]).g * 2.0;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[14]).g * 2.0;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[15]).g * 2.0;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[16]).g * 2.0;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[17]).g * 2.0;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[18]).g * 2.0;\n" +
+                    "sampleColor += texture2D(sTexture, blurCoordinates[19]).g * 2.0;\n" +
+                    "sampleColor = sampleColor/50.0;\n" +
+
+                    "float dis = centralColor.g - sampleColor + 0.5;\n" +
+                    "if (dis <= 0.5) {\n" +
+                    "dis = dis * dis * 2.0;\n" +
+                    "} else {\n" +
+                    "dis = 1.0 - ((1.0 - dis)*(1.0 - dis) * 2.0);\n" +
+                    "}\n" +
+
+                    "if (dis <= 0.5) {\n" +
+                    "dis = dis * dis * 2.0;\n" +
+                    "} else {\n" +
+                    "dis = 1.0 - ((1.0 - dis)*(1.0 - dis) * 2.0);\n" +
+                    "}\n" +
+
+                    "if (dis <= 0.5) {\n" +
+                    "dis = dis * dis * 2.0;\n" +
+                    "} else {\n" +
+                    "dis = 1.0 - ((1.0 - dis)*(1.0 - dis) * 2.0);\n" +
+                    "}\n" +
+
+                    "if (dis <= 0.5) {\n" +
+                    "dis = dis * dis * 2.0;\n" +
+                    "} else {\n" +
+                    "dis = 1.0 - ((1.0 - dis)*(1.0 - dis) * 2.0);\n" +
+                    "}\n" +
+
+                    "if (dis <= 0.5) {\n" +
+                    "dis = dis * dis * 2.0;\n" +
+                    "} else {\n" +
+                    "dis = 1.0 - ((1.0 - dis)*(1.0 - dis) * 2.0);\n" +
+                    "}\n" +
+
+                    "float aa = 1.03;\n" +
+                    "vec3 smoothColor = centralColor*aa - vec3(dis)*(aa-1.0);\n" +
+
+                    "float hue = dot(smoothColor, vec3(0.299,0.587,0.114));\n" +
+
+                    "float huePow = pow(hue, levelParam.x);\n" +
+                    "aa = 1.0 + huePow*0.1;\n" +
+                    "smoothColor = centralColor*aa - vec3(dis)*(aa-1.0);\n" +
+
+                    "smoothColor.r = clamp(pow(smoothColor.r, levelParam.y),0.0,1.0);\n" +
+                    "smoothColor.g = clamp(pow(smoothColor.g, levelParam.y),0.0,1.0);\n" +
+                    "smoothColor.b = clamp(pow(smoothColor.b, levelParam.y),0.0,1.0);\n" +
+
+                    "vec3 lvse = vec3(1.0)-(vec3(1.0)-smoothColor)*(vec3(1.0)-centralColor);\n" +
+                    "vec3 bianliang = max(smoothColor, centralColor);\n" +
+                    "vec3 temp = 2.0*centralColor*smoothColor;\n" +
+                    "vec3 rouguang = temp + centralColor*centralColor - temp*centralColor;\n" +
+
+                    "gl_FragColor = vec4(mix(centralColor, lvse, huePow), 1.0);\n" +
+                    "gl_FragColor.rgb = mix(gl_FragColor.rgb, bianliang, huePow);\n" +
+                    "gl_FragColor.rgb = mix(gl_FragColor.rgb, rouguang, levelParam.z);\n" +
+
+                    "mat3 saturateMatrix = mat3(1.1102, -0.0598, -0.061, -0.0774, 1.0826, -0.1186, -0.0228, -0.0228, 1.1772);\n" +
+                    "vec3 satcolor = gl_FragColor.rgb * saturateMatrix;\n" +
+                    "gl_FragColor.rgb = mix(gl_FragColor.rgb, satcolor, levelParam.w);\n" +
+                    "}\n";
+
     private ProgramType mProgramType;
 
     // Handles to the GL program and various components of it.
@@ -143,6 +262,8 @@ public class Texture2dProgram {
     private int muColorAdjustLoc;
     private int maPositionLoc;
     private int maTextureCoordLoc;
+    private int mGLLevelParamLocation;
+    private float[] mBeautyLevelParam;
 
     private int mTextureTarget;
 
@@ -181,6 +302,12 @@ public class Texture2dProgram {
             case TEXTURE_EXT_FILT:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
                 mProgramHandle = GLUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_EXT_FILT);
+                break;
+            case TEXTURE_EXT_BEAUTY:
+                mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
+                mProgramHandle = GLUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_EXT_BEAUTY);
+                mGLLevelParamLocation = GLES20.glGetUniformLocation(mProgramHandle, "levelParam");
+                mBeautyLevelParam = setLevel(3);
                 break;
             default:
                 throw new RuntimeException("Unhandled type " + programType);
@@ -357,6 +484,10 @@ public class Texture2dProgram {
             GLES20.glUniform1f(muColorAdjustLoc, mColorAdjust);
         }
 
+        if (mProgramType == ProgramType.TEXTURE_EXT_BEAUTY) {
+            GLES20.glUniform4fv(mGLLevelParamLocation, 1, FloatBuffer.wrap(mBeautyLevelParam));
+        }
+
         // Draw the rect.
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, firstVertex, vertexCount);
         GLUtil.checkGlError("glDrawArrays");
@@ -366,5 +497,59 @@ public class Texture2dProgram {
         GLES20.glDisableVertexAttribArray(maTextureCoordLoc);
         GLES20.glBindTexture(mTextureTarget, 0);
         GLES20.glUseProgram(0);
+    }
+
+    /**
+     * 设置美颜级别
+     * @param _beautyLevel
+     * @return
+     */
+    private float[] setLevel(int _beautyLevel) {
+        float hue_,smoothColor_,rouguang_,saturate_;
+        switch (_beautyLevel) {
+
+            case 5:
+            {
+                hue_ = 0.33f;
+                smoothColor_ = 0.63f;
+                rouguang_ = 0.4f;
+                saturate_ = 0.35f;
+                break;
+            }
+            case 4:
+            {
+                hue_ = 0.4f;
+                smoothColor_ = 0.7f;
+                rouguang_ = 0.38f;
+                saturate_ = 0.3f;
+                break;
+            }
+            case 3:
+            {
+                hue_ = 0.6f;
+                smoothColor_ = 0.8f;
+                rouguang_ = 0.25f;
+                saturate_ = 0.25f;
+                break;
+            }
+            case 2:
+            {
+                hue_ = 0.8f;
+                smoothColor_ = 0.9f;
+                rouguang_ = 0.2f;
+                saturate_ = 0.2f;
+                break;
+            }
+            default:
+            {
+                hue_ = 1.0f;
+                smoothColor_ = 1.0f;
+                rouguang_ = 0.15f;
+                saturate_ = 0.15f;
+                break;
+            }
+        }
+        float levelParam[] = {hue_,smoothColor_,rouguang_,saturate_};
+        return levelParam;
     }
 }

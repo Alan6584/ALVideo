@@ -131,6 +131,9 @@ public class VideoActivity extends AppCompatActivity implements View.OnClickList
             case 3:
                 cameraSurfaceView.changeFilter(FilterType.SEPIA);
                 break;
+            case 4:
+                cameraSurfaceView.changeFilter(FilterType.BEAUTY);
+                break;
         }
     }
 

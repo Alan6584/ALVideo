@@ -2,6 +2,9 @@ package com.alan.alvideo.camera;
 
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.util.Log;
+
+import java.util.List;
 
 /**
  * Created by wangjianjun on 16/12/22.
@@ -75,6 +78,15 @@ public class CameraController {
                 // 设置预览尺寸
                 if (previewSize != null) {
                     parameters.setPreviewSize(previewSize.width, previewSize.height);
+//                    parameters.setRecordingHint(true);
+
+                    List<int[]> fpsRanges = parameters.getSupportedPreviewFpsRange();
+                    for (int[] range : fpsRanges) {
+                        Log.e("Alan66", "configureCameraParameters()-->range[0] = " + range[0] + ", range[1]" + range[1]);
+                    }
+
+                    int[] range = CameraUtils.getSuitablePreviewFps(30, fpsRanges);
+                    parameters.setPreviewFpsRange(range[0], range[1]);
                 }
                 mCamera.setParameters(parameters);
             }

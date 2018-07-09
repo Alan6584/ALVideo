@@ -12,7 +12,7 @@ public class FilterManager {
      * 滤镜类型
      */
     public enum FilterType {
-        NORMAL, GRAYSCALE, STARMAKER, SEPIA
+        NORMAL, GRAYSCALE, STARMAKER, SEPIA, BEAUTY
     }
 
     private FilterManager() {
@@ -39,6 +39,9 @@ public class FilterManager {
                 break;
             case SEPIA:
                 programType = Texture2dProgram.ProgramType.TEXTURE_EXT_SEPIA;
+                break;
+            case BEAUTY:
+                programType = Texture2dProgram.ProgramType.TEXTURE_EXT_BEAUTY;
                 break;
         }
         Texture2dProgram program = new Texture2dProgram(programType);

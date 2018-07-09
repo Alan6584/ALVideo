@@ -11,5 +11,6 @@
         <item>Filter：GRAYSCALE</item>
         <item>Filter：STARMAKER</item>
         <item>Filter：SEPIA</item>
+        <item>Filter：BEAUTY</item>
     </string-array>
 </resources>
