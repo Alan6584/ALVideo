@@ -9,8 +9,10 @@ import android.os.Environment;
 import android.view.Surface;
 
 import com.alan.alvideo.R;
+import com.alan.alvideo.util.FileUtil;
 import com.alan.alvideo.video.GLVideoRender;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -30,6 +32,12 @@ public class GLVideoPlayActivity extends Activity implements GLVideoRender.Surfa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_glvideo_play);
+
+        //创建文件保存目录
+        File rootDir = new File(FileUtil.getExternalDirectory(GLVideoPlayActivity.this), FileUtil.AL_DIR);
+        if (!rootDir.exists()){
+            rootDir.mkdirs();
+        }
 
         vieoGlSurfaceView = (GLSurfaceView)findViewById(R.id.vieoGlSurfaceView);
         glVideoRender = new GLVideoRender();

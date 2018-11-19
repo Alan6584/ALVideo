@@ -40,7 +40,7 @@ public class FileUtil {
     }
 
     /**
-     * 获取cache目录（eg. /sdcard/Android/data/com.starmaker.sdk/cache/）
+     * 获取cache目录
      * @param context
      * @param preferExternal
      * @return

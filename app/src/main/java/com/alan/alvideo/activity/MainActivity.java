@@ -1,5 +1,6 @@
 package com.alan.alvideo.activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.widget.TextView;
 
 import com.alan.alvideo.R;
 import com.alan.alvideo.util.FileUtil;
+import com.alan.alvideo.util.RuntimePermissionsHelper;
 
 import java.io.File;
 
@@ -28,11 +30,14 @@ public class MainActivity extends Activity implements View.OnClickListener{
         TextView videoTv = (TextView) findViewById(R.id.videoPlay);
         videoTv.setOnClickListener(this);
 
-        //创建文件保存目录
-        File rootDir = new File(FileUtil.getExternalDirectory(MainActivity.this), FileUtil.AL_DIR);
-        if (!rootDir.exists()){
-            rootDir.mkdirs();
+        RuntimePermissionsHelper runtimePermissionsHelper = RuntimePermissionsHelper.create(this, null,
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (!runtimePermissionsHelper.allPermissionsGranted()) {
+            runtimePermissionsHelper.makeRequest();
         }
+
     }
 
     @Override

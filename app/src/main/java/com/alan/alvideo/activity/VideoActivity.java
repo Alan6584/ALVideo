@@ -36,6 +36,12 @@ public class VideoActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video);
 
+        //创建文件保存目录
+        File rootDir = new File(FileUtil.getExternalDirectory(VideoActivity.this), FileUtil.AL_DIR);
+        if (!rootDir.exists()){
+            rootDir.mkdirs();
+        }
+
         initView();
         isRecordEnabled = TextureMovieEncoder.getInstance().isRecording();
     }
@@ -126,7 +132,7 @@ public class VideoActivity extends AppCompatActivity implements View.OnClickList
                 cameraSurfaceView.changeFilter(FilterType.GRAYSCALE);
                 break;
             case 2:
-                cameraSurfaceView.changeFilter(FilterType.STARMAKER);
+                cameraSurfaceView.changeFilter(FilterType.PURPLE);
                 break;
             case 3:
                 cameraSurfaceView.changeFilter(FilterType.SEPIA);

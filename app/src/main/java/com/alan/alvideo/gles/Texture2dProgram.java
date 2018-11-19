@@ -29,7 +29,7 @@ public class Texture2dProgram {
     private static final String TAG = Texture2dProgram.class.getSimpleName();
 
     public enum ProgramType {
-        TEXTURE_2D, TEXTURE_EXT, TEXTURE_EXT_BW, TEXTURE_EXT_FILT, TEXTURE_EXT_STARMAKER, TEXTURE_EXT_SEPIA, TEXTURE_EXT_BEAUTY
+        TEXTURE_2D, TEXTURE_EXT, TEXTURE_EXT_BW, TEXTURE_EXT_FILT, TEXTURE_EXT_PURPLE, TEXTURE_EXT_SEPIA, TEXTURE_EXT_BEAUTY
     }
 
     // Simple vertex shader, used for all programs.
@@ -88,7 +88,7 @@ public class Texture2dProgram {
                     "    gl_FragColor = vec4(color * 130.0, color * 80.0, color * 50.0, 1.0);\n" +
                     "}\n";
 
-    private static final String FRAGMENT_SHADER_EXT_STARMAKER =
+    private static final String FRAGMENT_SHADER_EXT_PURPLE =
             "#extension GL_OES_EGL_image_external : require\n" +
                     "precision mediump float;\n" +
                     "varying vec2 vTextureCoord;\n" +
@@ -291,9 +291,9 @@ public class Texture2dProgram {
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
                 mProgramHandle = GLUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_EXT_BW);
                 break;
-            case TEXTURE_EXT_STARMAKER:
+            case TEXTURE_EXT_PURPLE:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
-                mProgramHandle = GLUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_EXT_STARMAKER);
+                mProgramHandle = GLUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER_EXT_PURPLE);
                 break;
             case TEXTURE_EXT_SEPIA:
                 mTextureTarget = GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
